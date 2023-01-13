@@ -4,7 +4,7 @@ public class Soda extends Product{
     public Soda() {
     }
 
-    public Soda(String name, int price) {
-        super(name, price);
+    public Soda(String name, int price, char key) {
+        super(name, price, key);
     }
 }
