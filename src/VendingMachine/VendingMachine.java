@@ -1,10 +1,9 @@
 package VendingMachine;
 
+import Payment.*;
 import Products.Product;
 
 import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
 
@@ -12,7 +11,9 @@ public class VendingMachine{
     private final List<Product> products = new ArrayList<>();
     private int capacity = 20;
     private int vendingMachineMoney = 0;
-    private int userMoney = 0;
+    private PayStrategy payStrategy = new PayByCash();
+    private Order order = new Order();
+    private boolean isPayStrategyInstalled = false;
 
     public VendingMachine() {
         fillVendingMachine();
@@ -27,17 +28,6 @@ public class VendingMachine{
         }
     }
 
-    private void userInputMoney(){
-        Scanner scanner = new Scanner(System.in);
-        try {
-            System.out.print("Внесите оплату -> ");
-            userMoney += scanner.nextInt();
-        }
-        catch (InputMismatchException e){
-            System.out.println("Ввели строку вместо цифры. Попробуйте снова");
-            userInputMoney();
-        }
-    }
     private String userInputAction(){
         Scanner scanner = new Scanner(System.in);
         System.out.print("Введите символ действия: ");
@@ -64,7 +54,7 @@ public class VendingMachine{
     }
     private void printAvailableProductsToBuy(){
         products.stream()
-                .filter(product -> product.getPrice() <= userMoney)
+                .filter(product -> product.getPrice() <= payStrategy.getAccountAmount())
                 .collect(toSet())
                 .forEach(product -> System.out.printf("%s - Купить %s\n", product.getKey(), product.getName()));
     }
@@ -73,7 +63,7 @@ public class VendingMachine{
                 .filter(product -> Character.toString(product.getKey()).equals(userInput))
                 .findFirst().orElseThrow();
 
-        userMoney -= foundProduct.getPrice();
+        payStrategy.pay(foundProduct.getPrice());
         vendingMachineMoney += foundProduct.getPrice();
         products.remove(foundProduct);
     }
@@ -91,17 +81,45 @@ public class VendingMachine{
         printAvailableProductsToBuy();
     }
     private void doActions(){
-        boolean isEnd = false;
-        while (!(isEnd)){
-            printUserActions();
-            String userInputString = userInputAction();
-            switch (userInputString) {
-                case "z" -> userInputMoney();
-                case "x" -> printAvailableProducts();
-                case "a" -> isEnd = true;
-                default -> byProduct(userInputString);
+        while (!order.isClosed()){
+                printUserActions();
+                String userInputString = userInputAction();
+                switch (userInputString) {
+                    case "z" -> makePayment();
+                    case "x" -> printAvailableProducts();
+                    case "a" -> order.setClosed(true);
+                    default -> byProduct(userInputString);
             }
         }
+
+    }
+
+    private void paymentOptionsPrint(){
+        System.out.println("Выберите способ оплаты:" + "\n" +
+                "p - PayPal" + "\n" +
+                "o - Кредитная карта" + "\n" +
+                "i - Наличные");
+    }
+    private void makePayment() {
+        paymentOptionsPrint();
+
+        String paymentMethod = userInputAction();
+
+        // Клиент создаёт различные стратегии на основании
+        // пользовательских данных, конфигурации и прочих параметров.
+        switch (paymentMethod) {
+            case "p" -> payStrategy = new PayByPayPal();
+            case "o" -> payStrategy = new PayByCreditCard();
+            case "i" -> payStrategy = new PayByCash();
+            default -> {
+                System.out.println("Такого способа оплаты нет. Попробуйте снова");
+                makePayment();
+            }
+        }
+
+        // Объект заказа делегирует сбор платёжных данных стратегии, т.к.
+        // только стратегии знают какие данные им нужны для приёма оплаты.
+        order.processOrder(payStrategy);
     }
 
 }
