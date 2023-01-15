@@ -13,7 +13,6 @@ public class VendingMachine{
     private int vendingMachineMoney = 0;
     private PayStrategy payStrategy = new PayByCash();
     private Order order = new Order();
-    private boolean isPayStrategyInstalled = false;
 
     public VendingMachine() {
         fillVendingMachine();
@@ -107,14 +106,11 @@ public class VendingMachine{
 
         // Клиент создаёт различные стратегии на основании
         // пользовательских данных, конфигурации и прочих параметров.
-        switch (paymentMethod) {
-            case "p" -> payStrategy = new PayByPayPal();
-            case "o" -> payStrategy = new PayByCreditCard();
-            case "i" -> payStrategy = new PayByCash();
-            default -> {
-                System.out.println("Такого способа оплаты нет. Попробуйте снова");
-                makePayment();
-            }
+        try {
+            payStrategy = Paymet.getPayStrategy(paymentMethod);
+        }
+        catch (RuntimeException e){
+            System.out.println(e);
         }
 
         // Объект заказа делегирует сбор платёжных данных стратегии, т.к.

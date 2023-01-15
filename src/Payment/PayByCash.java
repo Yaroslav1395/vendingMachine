@@ -2,20 +2,18 @@ package Payment;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
-
+//создаем конкретную стратегию
 public class PayByCash implements PayStrategy{
     private int amount = 0;
+    //метод снимет средства за товар
     @Override
-    public boolean pay(int paymentAmount) {
+    public void pay(int paymentAmount) {
         if (cashCheck()) {
             System.out.println("Оплатили " + paymentAmount + " используя PayPal.");
             amount -= paymentAmount;
-            return true;
-        } else {
-            return false;
         }
     }
-
+    //открывает возможность для пополнения наличными
     @Override
     public void collectPaymentDetails() {
         Scanner scanner = new Scanner(System.in);
@@ -29,20 +27,13 @@ public class PayByCash implements PayStrategy{
         }
     }
 
+    //вернет сумму пополнения
     @Override
     public int getAccountAmount() {
         return amount;
     }
 
-
-    public int getAmount() {
-        return amount;
-    }
-
-    public void setAmount(int amount) {
-        this.amount += amount;
-    }
-
+    //проверит есть ли средства на балансе
     private boolean cashCheck(){
         return amount != 0;
     }

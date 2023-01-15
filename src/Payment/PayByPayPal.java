@@ -5,30 +5,21 @@ import PayPalAccount.PayPalUser;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.io.BufferedReader;
 //класс конкретной стратегии
 public class PayByPayPal implements PayStrategy{
     //поле для считывания данных при авторизации новых пользователей
     private final BufferedReader READER = new BufferedReader(new InputStreamReader(System.in));
-    //поле для хранения email клиента
+    //поле для хранения данных пользователя
     PayPalUser payPalUser = new PayPalUser();
     private boolean signedIn;
 
-
-
-    //Если клиент уже вошел в систему, то для следующей оплаты данные вводить
-    //не придется
     @Override
-    public boolean pay(int paymentAmount) {
+    public void pay(int paymentAmount) {
         if (signedIn) {
             System.out.println("Оплатили " + paymentAmount + " используя PayPal.");
             payPalUser.setAmount(payPalUser.getAmount() - paymentAmount);
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -63,7 +54,7 @@ public class PayByPayPal implements PayStrategy{
 
     //после того как клиент введет данные при авторизации, метод проверит есть ли он в базе
     private boolean verify() {
-        //проверяем есть ли такой аккаунт
+        //проверяем есть ли такой аккаунт в базе PayPal
         setSignedIn(checkPayPalUser());
         return signedIn;
     }
@@ -73,6 +64,7 @@ public class PayByPayPal implements PayStrategy{
         this.signedIn = signedIn;
     }
 
+    //подключимся к базе данных PayPal чтобы получить данные пользователя
     private boolean checkPayPalUser(){
         Map<String, PayPalUser> payPalUserList = PayPalAccounts.getPayPalAccountsList();
 
@@ -83,6 +75,8 @@ public class PayByPayPal implements PayStrategy{
             return false;
         }
     }
+
+    //после совершения оплаты, отправляем данные PayPal
     private void sendPaymentDetailsToPayPal(PayPalUser payPalUser){
         PayPalAccounts.acceptPaymentInformation(payPalUser);
     }

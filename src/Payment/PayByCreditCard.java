@@ -9,22 +9,21 @@ import CreditCard.CreditCard;
 public class PayByCreditCard implements PayStrategy{
     ////поле для считывания данных при авторизации новых пользователей
     private final BufferedReader READER = new BufferedReader(new InputStreamReader(System.in));
+    //данная стратегия хранит кредитную карту
     private CreditCard card;
 
     //производим оплату
     @Override
-    public boolean pay(int paymentAmount) {
+    public void pay(int paymentAmount) {
         //проверяем авторизована карта или нет
         if (cardIsPresent()) {
             System.out.println("Оплатили " + paymentAmount + " используя кредитную карту.");
             //списываем с карты деньги
             card.setAmount(card.getAmount() - paymentAmount);
-            return true;
-        } else {
-            return false;
         }
     }
 
+    //собираем данные для проверок
     @Override
     public void collectPaymentDetails() {
         try {
@@ -41,6 +40,7 @@ public class PayByCreditCard implements PayStrategy{
         }
     }
 
+    //вернет сумму на карте
     @Override
     public int getAccountAmount() {
         return card.getAmount();
